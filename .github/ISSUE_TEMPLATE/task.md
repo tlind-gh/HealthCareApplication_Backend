@@ -18,7 +18,7 @@ _Övergripande beskrivning av subissuet issuet_
 ### Issue-specifika
 _Lista vilken specifik funktionalitet som ingår i subissuet. Var extremt konkret och specifik._
 
-_Exempel 1: [] skriv en funktion för att kontrollera om två tidsintervall överlappar
+_Exempel 1: [] skriv en funktion för att kontrollera om två tidsintervall överlappar_
 _Expempel 2: [] skriv enhetstest för ett positivt scenario för funktionen verifyTimeSpanOverlap()._
 
 _Kryssa i rutorna genom att ändra [ ] till [x] när alla subissues är klara PR:en._
