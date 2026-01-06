@@ -19,10 +19,8 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-
     @Value("${jwt.expirationMs}")
     private int jwtExpirationMs;
-
 
     private Key getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
@@ -48,23 +46,20 @@ public class JwtUtil {
         }
     }
 
-
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
-
 
     private boolean isTokenExpired(String token) {
         Date expiration = extractAllClaims(token).getExpiration();
         return expiration.before(new Date());
     }
 
-
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
-
 }
