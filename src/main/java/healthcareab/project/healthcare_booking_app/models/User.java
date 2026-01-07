@@ -1,5 +1,7 @@
 package healthcareab.project.healthcare_booking_app.models;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.data.annotation.Id;
@@ -26,6 +28,7 @@ public class User {
     private String password;
 
     private Set<Role> roles;
+
 
     private String email;
     private String firstName;

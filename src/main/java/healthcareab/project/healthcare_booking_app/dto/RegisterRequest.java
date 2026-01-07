@@ -1,7 +1,9 @@
 package healthcareab.project.healthcare_booking_app.dto;
 
 import healthcareab.project.healthcare_booking_app.models.Role;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.Set;
 
@@ -11,7 +13,10 @@ public class RegisterRequest {
     @NotBlank
     private String password;
     private Set<Role> roles;
-
+    
+    @Email(message = "email does not have a valid format")
+    @Indexed(unique = true)
+    @NotBlank
     private String email;
     private String firstName;
     private String lastName;

@@ -48,6 +48,12 @@ public class AuthController {
                     .status(HttpStatus.CONFLICT)
                     .body("Username already exists.");
         }
+        
+        if(authService.existsByEmail(registerRequest.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Email already exists.");
+        }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
