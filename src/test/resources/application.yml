@@ -1,0 +1,2 @@
+jwt.secret=test-secret
+jwt.expirationMs=3600000

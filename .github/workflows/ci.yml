@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_EXPIRATION_MS: ${{ secrets.JWT_EXPIRATION_MS }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -19,8 +16,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-#      - name: Check code style
-#       run: mvn checkstyle:check
+      - name: Check code style
+        run: mvn checkstyle:check
       - name: Build and test with coverage
         run: mvn verify jacoco:report
       - name: Security scan
