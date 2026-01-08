@@ -48,10 +48,19 @@ public class AuthController {
                     .status(HttpStatus.CONFLICT)
                     .body("Username already exists.");
         }
+        
+        if(authService.existsByEmail(registerRequest.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Email already exists.");
+        }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(registerRequest.getPassword());
+        user.setEmail(registerRequest.getEmail());
+        user.setFirstName(registerRequest.getFirstName());
+        user.setLastName(registerRequest.getLastName());
 
         if(registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
             user.setRoles(Set.of(Role.USER));
@@ -103,8 +112,7 @@ public class AuthController {
                     authService.findByUsername(userDetails.getUsername()).getRoles(),
                     authService.findByUsername(userDetails.getUsername()).getEmail(),
                     authService.findByUsername(userDetails.getUsername()).getFirstName(),
-                    authService.findByUsername(userDetails.getUsername()).getLastName(),
-                    authService.findByUsername(userDetails.getUsername()).getAddress()
+                    authService.findByUsername(userDetails.getUsername()).getLastName()
 
             );
 
@@ -153,8 +161,7 @@ public class AuthController {
                 user.getRoles(),
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName(),
-                user.getAddress()
+                user.getLastName()
         ));
     }
 }

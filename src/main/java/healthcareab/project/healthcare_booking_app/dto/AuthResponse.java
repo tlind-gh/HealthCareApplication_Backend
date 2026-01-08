@@ -11,16 +11,14 @@ public class AuthResponse {
     private String email;
     private String firstName;
     private String lastName;
-    private String address;
 
-    public AuthResponse(String jwtToken, String username, Set<Role> roles, String email, String firstName, String lastName, String address) {
+    public AuthResponse(String jwtToken, String username, Set<Role> roles, String email, String firstName, String lastName) {
         this.jwtToken = jwtToken;
         this.username = username;
         this.roles = roles;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.address = address;
     }
 
 
@@ -70,13 +68,5 @@ public class AuthResponse {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 }
