@@ -1,33 +1,29 @@
 <?xml version="1.0"?>
 <!DOCTYPE module PUBLIC
         "-//Checkstyle//DTD Checkstyle Configuration 1.4//EN"
-        "https://checkstyle.org/dtds/configuration_1_4.dtd">
+        "classpath:///checkstyle.org/dtds/configuration_1_4.dtd">
 
 <module name="Checker">
 
     <module name="TreeWalker">
 
-        <!-- Indentation rules -->
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="0"/>
             <property name="caseIndent" value="4"/>
         </module>
 
-        <!-- Naming conventions -->
         <module name="TypeName"/>
         <module name="MethodName"/>
         <module name="ParameterName"/>
         <module name="LocalVariableName"/>
 
-        <!-- Javadoc for public methods -->
         <module name="JavadocMethod">
             <property name="scope" value="public"/>
             <property name="allowMissingParamTags" value="true"/>
             <property name="allowMissingThrowsTags" value="true"/>
         </module>
 
-        <!-- Detect unused imports -->
         <module name="UnusedImports"/>
 
     </module>
