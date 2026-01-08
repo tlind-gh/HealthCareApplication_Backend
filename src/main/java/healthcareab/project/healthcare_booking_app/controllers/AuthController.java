@@ -112,8 +112,7 @@ public class AuthController {
                     authService.findByUsername(userDetails.getUsername()).getRoles(),
                     authService.findByUsername(userDetails.getUsername()).getEmail(),
                     authService.findByUsername(userDetails.getUsername()).getFirstName(),
-                    authService.findByUsername(userDetails.getUsername()).getLastName(),
-                    authService.findByUsername(userDetails.getUsername()).getAddress()
+                    authService.findByUsername(userDetails.getUsername()).getLastName()
 
             );
 
@@ -162,8 +161,7 @@ public class AuthController {
                 user.getRoles(),
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName(),
-                user.getAddress()
+                user.getLastName()
         ));
     }
 }
