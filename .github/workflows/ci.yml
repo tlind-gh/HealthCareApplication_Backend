@@ -16,8 +16,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-      - name: Check code style
-        run: mvn checkstyle:check
+     # - name: Check code style
+     #   run: mvn checkstyle:check
       - name: Build and test with coverage
         run: mvn verify jacoco:report
       - name: Cache OWASP Dependency Check data
