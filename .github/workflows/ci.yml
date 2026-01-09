@@ -21,12 +21,6 @@ jobs:
      #   run: mvn checkstyle:check
       - name: Build and test with coverage
         run: mvn verify jacoco:report
-      - name: Warn if coverage is below threshold
-        if: always()
-        run: |
-            if grep -R "Rule violated for bundle" build.log; then
-            echo "::warning title=JaCoCo Coverage Warning::Test coverage is below the configured threshold"
-            fi
       - name: Cache OWASP Dependency Check data
         uses: actions/cache@v4
         with:
