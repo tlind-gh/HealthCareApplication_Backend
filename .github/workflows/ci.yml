@@ -2,6 +2,7 @@ name: Java CI with Maven
 
 on:
   push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -20,6 +21,12 @@ jobs:
      #   run: mvn checkstyle:check
       - name: Build and test with coverage
         run: mvn verify jacoco:report
+      - name: Warn if coverage is below threshold
+        if: always()
+        run: |
+            if grep -R "Rule violated for bundle" build.log; then
+            echo "::warning title=JaCoCo Coverage Warning::Test coverage is below the configured threshold"
+            fi
       - name: Cache OWASP Dependency Check data
         uses: actions/cache@v4
         with:
