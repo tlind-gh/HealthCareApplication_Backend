@@ -1,4 +1,4 @@
-package healthcareab.project.healthcare_booking_app.models;
+package healthcareab.project.healthcare_booking_app.models.supportClasses;
 
 public enum Role {
     USER,

@@ -4,7 +4,7 @@ import healthcareab.project.healthcare_booking_app.dto.AuthRequest;
 import healthcareab.project.healthcare_booking_app.dto.AuthResponse;
 import healthcareab.project.healthcare_booking_app.dto.RegisterRequest;
 import healthcareab.project.healthcare_booking_app.dto.RegisterResponse;
-import healthcareab.project.healthcare_booking_app.models.Role;
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.services.AuthService;
 import healthcareab.project.healthcare_booking_app.utils.JwtUtil;

@@ -39,7 +39,7 @@ public class RegisterRequest {
         return password;
     }
 
-    public Set<Role> getRoles() {
+    public Set<healthcareab.project.healthcare_booking_app.models.supportClasses.Role> getRoles() {
         return roles;
     }
 

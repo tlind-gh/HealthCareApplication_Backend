@@ -1,5 +1,6 @@
 package healthcareab.project.healthcare_booking_app.models;
 
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -7,6 +8,8 @@ import jakarta.validation.constraints.Pattern;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+
 
 import java.util.Set;
 
