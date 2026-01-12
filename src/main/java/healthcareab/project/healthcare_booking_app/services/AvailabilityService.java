@@ -16,30 +16,23 @@ import java.time.LocalTime;
 @Service
 public class AvailabilityService {
     private final AvailabilityRepository availabilityRepository;
-    private final UserAuthRepository userAuthRepository;
+    private final UserService userService;
     
-    public AvailabilityService(AvailabilityRepository availabilityRepository, UserAuthRepository userAuthRepository) {
+    public AvailabilityService(AvailabilityRepository availabilityRepository, UserService userService) {
         this.availabilityRepository = availabilityRepository;
-        this.userAuthRepository = userAuthRepository;
-        
+        this.userService = userService;
     }
     
-    public Availability createAvailability(
-            LocalDate date,
-            LocalTime startTime,
-            LocalTime endTime
-    )  {
-        User user = userAuthRepository.authenticateAndExtractUser();
-        
-        if(user.getRoles().contains(Role.ADMIN)) {
-            throw new AccessDeniedException("Only admins can create availability");
-        }
+    public Availability createAvailability(LocalDate date, LocalTime startTime, LocalTime endTime) {
+        userService.assertCurrentUserAuthenticated();
+        User user = userService.getCurrentUser();
         
         if(!startTime.isBefore(endTime)) {
             throw new IllegalArgumentException("Start time must be before end time");
         }
         
         Availability availability = new Availability();
+        availability.setProviderId(user.getId());
         availability.setDate(date);
         availability.setStartTime(startTime);
         availability.setEndTime(endTime);

@@ -1,7 +1,9 @@
 package healthcareab.project.healthcare_booking_app.services;
 
+import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.User;
-import healthcareab.project.healthcare_booking_app.repository.UserRepository;
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
+import healthcareab.project.healthcare_booking_app.repository.UserAuthRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,27 +15,27 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    private UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
     
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserAuthRepository userAuthRepository) {
+        this.userAuthRepository = userAuthRepository;
     }
     
     public User getCurrentUser() {
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new AccessDeniedException("User is not authenticated");
+        return userAuthRepository.authenticateAndExtractUser();
+    }
+    
+    public String getCurrentUserId() {
+        return getCurrentUser().getId();
+    }
+    
+    public boolean isCurrentUserAuthenticated() {
+        return getCurrentUser().getRoles().contains(Role.ADMIN);
+    }
+    
+    public void assertCurrentUserAuthenticated() {
+        if (!isCurrentUserAuthenticated()) {
+            throw new UnauthorizedException("You are not authenticated");
         }
-        
-        Object principal = authentication.getPrincipal();
-        
-        if (!(principal instanceof CustomUserDetailsService userDetails)) {
-            throw new IllegalStateException("Unexpected principal type");
-        }
-        
-        return findById(userDetails.getId())
-                .orElseThrow(() -> new IllegalStateException("User not found"));
     }
 }

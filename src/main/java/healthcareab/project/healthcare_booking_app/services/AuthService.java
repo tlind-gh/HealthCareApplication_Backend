@@ -1,6 +1,6 @@
 package healthcareab.project.healthcare_booking_app.services;
 
-import healthcareab.project.healthcare_booking_app.models.Role;
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
