@@ -5,7 +5,7 @@ import healthcareab.project.healthcare_booking_app.exceptions.IllegalArgumentExc
 import healthcareab.project.healthcare_booking_app.exceptions.NameAlreadyBoundException;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
-import healthcareab.project.healthcare_booking_app.repository.UserRepository;
+import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +33,10 @@ public class AuthService {
 
         if (!registerRequest.getRoles().contains(Role.PERSONNEL) && registerRequest.getProfession() != null) {
             throw new IllegalArgumentException("Only personnel can have a profession");
+        }
+
+        if (registerRequest.getUsername().isBlank() || registerRequest.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Username and email cannot be blank");
         }
 
         return userRepository.save(mapRequestToUser(registerRequest));

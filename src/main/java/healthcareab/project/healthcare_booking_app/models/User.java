@@ -97,11 +97,11 @@ public class User {
         this.lastName = lastName;
     }
 
-    public String getId() {
-        return id;
+    public String getProfession() {
+        return profession;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setProfession(String profession) {
+        this.profession = profession;
     }
 }

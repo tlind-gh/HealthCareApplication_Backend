@@ -1,11 +1,8 @@
 package healthcareab.project.healthcare_booking_app.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 public class AuthRequest {
-    @NotBlank
+
     private String username;
-    @NotBlank
     private String password;
 
     public AuthRequest(String username, String password) {
@@ -13,11 +10,11 @@ public class AuthRequest {
         this.password = password;
     }
 
-    public @NotBlank String getUsername() {
+    public String getUsername() {
         return username;
     }
 
-    public @NotBlank String getPassword() {
+    public String getPassword() {
         return password;
     }
 }

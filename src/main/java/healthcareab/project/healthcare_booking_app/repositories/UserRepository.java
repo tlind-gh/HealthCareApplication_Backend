@@ -1,4 +1,4 @@
-package healthcareab.project.healthcare_booking_app.repository;
+package healthcareab.project.healthcare_booking_app.repositories;
 
 import healthcareab.project.healthcare_booking_app.models.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
