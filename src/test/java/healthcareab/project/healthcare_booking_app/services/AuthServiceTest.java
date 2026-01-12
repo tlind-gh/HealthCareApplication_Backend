@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+@ActiveProfiles("test")
 class AuthServiceTest {
 
     @Mock
@@ -42,26 +44,24 @@ class AuthServiceTest {
     void registerUser_shouldSaveUser_whenValidRequest() {
         // Arrange
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("john");
-        request.setEmail("john@example.com");
-        request.setPassword("Password1!");
-        request.setFirstName("John");
-        request.setLastName("Doe");
+        request.setUsername("TestUsername");
+        request.setEmail("test@example.com");
+        request.setPassword("TestPassword1234@");
+        request.setFirstName("TestFirstName");
+        request.setLastName("TestLastName");
         request.setRoles(Set.of(Role.PATIENT));
 
-        when(userRepository.findByUsername("john")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("Password1!")).thenReturn("encodedPassword");
+        when(userRepository.findByUsername("TestUsername")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("TestPassword1234@")).thenReturn("encodedPassword");
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         when(userRepository.save(captor.capture())).thenAnswer(i -> i.getArgument(0));
 
-        // Act
         User savedUser = authService.registerUser(request);
 
-        // Assert
-        assertThat(savedUser.getUsername()).isEqualTo("john");
-        assertThat(savedUser.getEmail()).isEqualTo("john@example.com");
+        assertThat(savedUser.getUsername()).isEqualTo("TestUsername");
+        assertThat(savedUser.getEmail()).isEqualTo("test@example.com");
         assertThat(savedUser.getPassword()).isEqualTo("encodedPassword");
         assertThat(savedUser.getRoles()).containsExactly(Role.PATIENT);
         verify(userRepository, times(1)).save(any(User.class));
@@ -69,27 +69,24 @@ class AuthServiceTest {
 
     @Test
     void findByUsername_shouldReturnUser_whenUserExists() {
-        // Arrange
-        User user = new User("jane", "encodedPwd", "jane@example.com", "Jane", "Doe", null);
-        when(userRepository.findByUsername("jane")).thenReturn(Optional.of(user));
+        User user = new User("TestUsername", "encodedPwd", "test@example.com", "Jane", "Doe", null);
+        when(userRepository.findByUsername("TestUsername")).thenReturn(Optional.of(user));
 
-        // Act
-        User result = authService.findByUsername("jane");
+        User result = authService.findByUsername("TestUsername");
 
-        // Assert
         assertThat(result).isEqualTo(user);
     }
 
     @Test
     void existsByUsername_shouldReturnTrue_whenUserExists() {
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(new User()));
-        assertThat(authService.existsByUsername("john")).isTrue();
+        when(userRepository.findByUsername("TestUsername")).thenReturn(Optional.of(new User()));
+        assertThat(authService.existsByUsername("TestUsername")).isTrue();
     }
 
     @Test
     void existsByEmail_shouldReturnTrue_whenEmailExists() {
-        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(new User()));
-        assertThat(authService.existsByEmail("john@example.com")).isTrue();
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(new User()));
+        assertThat(authService.existsByEmail("test@example.com")).isTrue();
     }
 
     @Test
@@ -120,13 +117,13 @@ class AuthServiceTest {
     @Test
     void registerUser_shouldThrow_whenNonPersonnelHasProfession() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("user");
-        request.setEmail("user@example.com");
+        request.setUsername("Patient");
+        request.setEmail("patient@example.com");
         request.setRoles(Set.of(Role.PATIENT));
         request.setProfession("Doctor");
 
-        when(userRepository.findByUsername("user")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("Patient")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("patient@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.registerUser(request))
                 .isInstanceOf(IllegalArgumentException.class)
