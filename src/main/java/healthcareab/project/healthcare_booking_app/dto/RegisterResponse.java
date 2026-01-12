@@ -1,6 +1,6 @@
 package healthcareab.project.healthcare_booking_app.dto;
 
-import healthcareab.project.healthcare_booking_app.models.Role;
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 
 import java.util.Set;
 
@@ -8,7 +8,6 @@ public class RegisterResponse {
     private String message;
     private String username;
     private Set<Role> roles;
-
     private String email;
     private String firstName;
     private String lastName;
