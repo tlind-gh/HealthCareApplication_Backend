@@ -31,7 +31,7 @@ public class AuthService {
             throw new NameAlreadyBoundException("Email already exists");
         }
 
-        if (!registerRequest.getRoles().contains(Role.PERSONNEL) && registerRequest.getProfession() != null) {
+        if (!registerRequest.getRoles().contains(Role.PROVIDER) && registerRequest.getProfession() != null) {
             throw new IllegalArgumentException("Only personnel can have a profession");
         }
 
