@@ -26,7 +26,7 @@ public class UserService {
     }
     
     public boolean isCurrentUserAuthenticated() {
-        return getCurrentUser().getRoles().contains(Role.PERSONNEL);
+        return getCurrentUser().getRoles().contains(Role.PROVIDER);
     }
     
     public void assertCurrentUserAuthenticated() {

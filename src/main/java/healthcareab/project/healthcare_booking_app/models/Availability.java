@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Document(collection="users")
+@Document(collection="Availability")
 public class Availability {
     @Id
     private String id;

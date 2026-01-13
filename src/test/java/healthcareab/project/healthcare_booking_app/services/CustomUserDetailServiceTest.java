@@ -39,7 +39,7 @@ public class CustomUserDetailServiceTest {
     void loadUserByUsername_shouldReturnUserDetails_whenUserExists() {
         // Arrange
         User user = new User("TestUsername", "encodedPassword", "test@example.com", "John", "Doe", null);
-        user.setRoles(Set.of(Role.PATIENT, Role.PERSONNEL));
+        user.setRoles(Set.of(Role.PATIENT, Role.PROVIDER));
 
         when(userRepository.findByUsername("TestUsername")).thenReturn(Optional.of(user));
 
