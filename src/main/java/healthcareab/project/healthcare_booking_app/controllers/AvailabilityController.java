@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ public class AvailabilityController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('PROVIDER','ADMIN')")
     public ResponseEntity<AvailabilityResponse> createAvailability(
             @Valid @RequestBody AvailabilityRequest request) {
 
@@ -55,6 +57,7 @@ public class AvailabilityController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PROVIDER','ADMIN')")
     public ResponseEntity<AvailabilityResponse> updateAvailability(
             @PathVariable String id,
             @Valid @RequestBody AvailabilityRequest request) {
@@ -72,6 +75,7 @@ public class AvailabilityController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PROVIDER','ADMIN')")
     public ResponseEntity<String> deleteAvailability(@PathVariable String id) {
         availabilityService.deleteAvailability(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
