@@ -29,6 +29,17 @@ public class AvailabilityService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
         
+        LocalTime minTime = LocalTime.of(8, 0);
+        LocalTime maxTime = LocalTime.of(17, 0);
+        
+        if(startTime.isBefore(minTime)) {
+            throw new IllegalArgumentException("Start time must be at or after 08:00");
+        }
+        
+        if(endTime.isAfter(maxTime)) {
+            throw new IllegalArgumentException("End time must be at or before 17:00");
+        }
+        
         Availability availability = new Availability();
         availability.setProviderId(user.getId());
         availability.setDate(date);
