@@ -55,7 +55,7 @@ public class CustomUserDetailServiceTest {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
 
-        assertThat(authorities).containsExactlyInAnyOrder("ROLE_PATIENT", "ROLE_PERSONNEL");
+        assertThat(authorities).containsExactlyInAnyOrder("ROLE_PATIENT", "ROLE_PROVIDER");
 
         verify(userRepository, times(1)).findByUsername("TestUsername");
     }
