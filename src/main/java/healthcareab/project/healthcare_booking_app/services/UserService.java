@@ -3,8 +3,8 @@ package healthcareab.project.healthcare_booking_app.services;
 import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
-import healthcareab.project.healthcare_booking_app.repository.UserAuthRepository;
 
+import healthcareab.project.healthcare_booking_app.repositories.UserAuthRepository;
 import org.springframework.stereotype.Service;
 
 
@@ -26,7 +26,7 @@ public class UserService {
     }
     
     public boolean isCurrentUserAuthenticated() {
-        return getCurrentUser().getRoles().contains(Role.ADMIN);
+        return getCurrentUser().getRoles().contains(Role.PERSONNEL);
     }
     
     public void assertCurrentUserAuthenticated() {

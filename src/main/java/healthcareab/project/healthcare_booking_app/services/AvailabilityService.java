@@ -2,16 +2,14 @@ package healthcareab.project.healthcare_booking_app.services;
 
 import healthcareab.project.healthcare_booking_app.models.Availability;
 import healthcareab.project.healthcare_booking_app.models.User;
-import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
-import healthcareab.project.healthcare_booking_app.repository.AvailabilityRepository;
-import healthcareab.project.healthcare_booking_app.repository.UserAuthRepository;
-import org.springframework.cglib.core.Local;
+import healthcareab.project.healthcare_booking_app.repositories.AvailabilityRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
+
 
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 public class AvailabilityService {
@@ -39,5 +37,9 @@ public class AvailabilityService {
         availability.setIsAvailable(true);
         
         return availabilityRepository.save(availability);
+    }
+    
+    public List<Availability> getAvailabilitiesForProvider(String providerId, LocalDate from, LocalDate to) {
+        return availabilityRepository.findByProviderIdAndDate(providerId, from, to);
     }
 }

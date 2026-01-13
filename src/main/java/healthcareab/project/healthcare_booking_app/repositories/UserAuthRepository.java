@@ -1,4 +1,4 @@
-package healthcareab.project.healthcare_booking_app.repository;
+package healthcareab.project.healthcare_booking_app.repositories;
 
 import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.User;
@@ -7,9 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.nio.file.AccessDeniedException;
 
-public interface UserAuthRepository extends UserRepository{
+public interface UserAuthRepository extends UserRepository {
     //authenticate and extract current logged-in user, cast error if no user is logged-in or cannot be found in database
     default User authenticateAndExtractUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

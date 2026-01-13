@@ -13,6 +13,7 @@ import java.util.Set;
 
 @Document(collection = "users")
 public class User {
+
     @Id
     private String id;
 
@@ -46,7 +47,16 @@ public class User {
         this.lastName = lastName;
         this.profession = profession;
     }
-
+    
+    public String getId() {
+        return id;
+    }
+    
+    public void setId(String id) {
+        this.id = id;
+    }
+    
+    
     public @NotBlank(message = "Username cannot be empty") String getUsername() {
         return username;
     }
