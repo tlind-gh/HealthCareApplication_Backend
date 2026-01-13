@@ -8,7 +8,6 @@ public class RegisterResponse {
     private String message;
     private String username;
     private Set<Role> roles;
-
     private String email;
     private String firstName;
     private String lastName;

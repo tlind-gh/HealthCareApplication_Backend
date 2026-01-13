@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TEST_DB_URI: ${{ secrets.TEST_DB_URI }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -17,8 +19,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-     # - name: Check code style
-     #   run: mvn checkstyle:check
+      - name: Set test DB URI
+        run: |
+          echo "Replacing MongoDB URI in application-test.yml"
+          sed -i "s|mongodb://localhost:27017/|$TEST_DB_URI|g" src/test/resources/application-test.yml
+          cat src/test/resources/application-test.yml
       - name: Build and test with coverage
         run: mvn verify jacoco:report
       - name: Cache OWASP Dependency Check data

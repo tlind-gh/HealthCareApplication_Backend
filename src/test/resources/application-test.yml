@@ -1,7 +1,9 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/testdb
+      uri: mongodb://localhost:27017/
+      database: testdb
+      auto-index-creation: true
 
 jwt:
   secret: test-secret

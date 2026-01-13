@@ -4,7 +4,6 @@ import healthcareab.project.healthcare_booking_app.dto.AuthRequest;
 import healthcareab.project.healthcare_booking_app.dto.AuthResponse;
 import healthcareab.project.healthcare_booking_app.dto.RegisterRequest;
 import healthcareab.project.healthcare_booking_app.dto.RegisterResponse;
-import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.services.AuthService;
 import healthcareab.project.healthcare_booking_app.utils.JwtUtil;
@@ -23,8 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -40,35 +37,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        System.out.println("Registration attempt: " + registerRequest.getUsername()
-                + " with password: " + registerRequest.getPassword());
 
-        if(authService.existsByUsername(registerRequest.getUsername())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Username already exists.");
-        }
-        
-        if(authService.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Email already exists.");
-        }
-
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(registerRequest.getPassword());
-        user.setEmail(registerRequest.getEmail());
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
-
-        if(registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(registerRequest.getRoles());
-        }
-
-        authService.registerUser(user);
+        User user = authService.registerUser(registerRequest);
 
         RegisterResponse response = new RegisterResponse(
                 "User registered successfully",
@@ -83,14 +53,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@Valid @RequestBody AuthRequest authRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login (@Valid @RequestBody AuthRequest authRequest) {
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            authRequest.getUsername(),
-                            authRequest.getPassword()
-                    )
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -101,7 +68,7 @@ public class AuthController {
             ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwt)
                     .httpOnly(true) // prevents javascript to get cookie
                     .secure(false) //IMPORTANT TO CHANGE IN PRODUCTION TO TRUE
-                    .path("/")  // cookies is available in all application
+                    .path("/")  // cookies are available in all application
                     .maxAge(10 * 60 * 60) // valid for 10h
                     .sameSite("Strict") // Lax & None
                     .build();

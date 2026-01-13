@@ -1,7 +1,7 @@
 package healthcareab.project.healthcare_booking_app.services;
 
 import healthcareab.project.healthcare_booking_app.models.User;
-import healthcareab.project.healthcare_booking_app.repository.UserRepository;
+import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +19,6 @@ public class CustomUserDetailsService  implements UserDetailsService {
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

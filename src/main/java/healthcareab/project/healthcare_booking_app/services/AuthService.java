@@ -1,8 +1,11 @@
 package healthcareab.project.healthcare_booking_app.services;
 
-import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
+import healthcareab.project.healthcare_booking_app.dto.RegisterRequest;
+import healthcareab.project.healthcare_booking_app.exceptions.IllegalArgumentException;
+import healthcareab.project.healthcare_booking_app.exceptions.NameAlreadyBoundException;
 import healthcareab.project.healthcare_booking_app.models.User;
-import healthcareab.project.healthcare_booking_app.repository.UserRepository;
+import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
+import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,27 +22,31 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // register user
-    public void registerUser(User user) {
-        // hash password
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-
-        // ensure the user has at least default role USER
-        if(user.getRoles() == null || user.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
+    public User registerUser(RegisterRequest registerRequest) {
+        if (existsByUsername(registerRequest.getUsername())) {
+            throw new NameAlreadyBoundException("Username already exists");
         }
 
-        userRepository.save(user);
+        if (existsByEmail(registerRequest.getEmail())) {
+            throw new NameAlreadyBoundException("Email already exists");
+        }
+
+        if (!registerRequest.getRoles().contains(Role.PERSONNEL) && registerRequest.getProfession() != null) {
+            throw new IllegalArgumentException("Only personnel can have a profession");
+        }
+
+        if (registerRequest.getUsername().isBlank() || registerRequest.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Username and email cannot be blank");
+        }
+
+        return userRepository.save(mapRequestToUser(registerRequest));
     }
 
-    // find user by username
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // check if username already exists
     public boolean existsByUsername(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
@@ -48,7 +55,19 @@ public class AuthService {
         return userRepository.findByEmail(email).isPresent();
     }
 
-
-
-
+    private User mapRequestToUser(RegisterRequest registerRequest) {
+        User user = new User(
+                registerRequest.getUsername(),
+                passwordEncoder.encode(registerRequest.getPassword()),
+                registerRequest.getEmail(),
+                registerRequest.getFirstName(),
+                registerRequest.getLastName(),
+                registerRequest.getProfession());
+        if (registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.PATIENT));
+        } else {
+            user.setRoles(registerRequest.getRoles());
+        }
+        return user;
+    }
 }
