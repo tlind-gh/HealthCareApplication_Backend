@@ -26,6 +26,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> notFoundExceptionHandler(NotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     //error handling for @RequestBody failing @Valid check
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> validationExceptionHandler(MethodArgumentNotValidException ex) {

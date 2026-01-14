@@ -9,8 +9,7 @@ import java.util.List;
 
 @Repository
 public interface AvailabilityRepository extends MongoRepository<Availability, String> {
-    // kanske borde vara i LocalTime? ändra isf om det ej fungerar i senare steg.
-    List<Availability> findByProviderIdAndDate(
+    List<Availability> findByProviderIdAndDateBetween(
             String providerId,
             LocalDate from,
             LocalDate to
