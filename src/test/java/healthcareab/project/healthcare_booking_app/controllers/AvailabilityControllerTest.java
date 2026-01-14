@@ -65,6 +65,8 @@ class AvailabilityControllerTest {
                 .build();
     }
 
+
+
     // ---------------------- GET /availability/all ----------------------
 
     @Test
@@ -357,6 +359,38 @@ class AvailabilityControllerTest {
         verify(availabilityService, times(1)).deleteAvailability(availabilityId);
     }
 
+    @Test
+    void createAvailability_shouldReturnCreated() throws Exception {
+        AvailabilityRequest request = new AvailabilityRequest();
+        request.setDate(LocalDate.of(2026, 2, 1));
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(11, 0));
+
+        Availability saved = new Availability();
+        saved.setId("av-1");
+        saved.setProviderId("provider-id");
+        saved.setDate(request.getDate());
+        saved.setStartTime(request.getStartTime());
+        saved.setEndTime(request.getEndTime());
+        saved.setIsAvailable(true);
+
+        when(availabilityService.createAvailability(any(), any(), any()))
+                .thenReturn(saved);
+
+        mockMvc.perform(post("/availability/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("av-1"))
+                .andExpect(jsonPath("$.providerId").value("provider-id"))
+                .andExpect(jsonPath("$.date").value("2026-02-01"))
+                .andExpect(jsonPath("$.startTime").value("09:00:00"))
+                .andExpect(jsonPath("$.endTime").value("11:00:00"));
+    }
+
+
+
+
     // ---------------------- Helper Methods ----------------------
 
     private Availability createAvailability(String id, String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
@@ -369,4 +403,5 @@ class AvailabilityControllerTest {
         availability.setIsAvailable(true);
         return availability;
     }
+
 }

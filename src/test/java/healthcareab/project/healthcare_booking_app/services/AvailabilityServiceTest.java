@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -230,4 +231,74 @@ class AvailabilityServiceTest {
         verify(userService, times(1)).assertCurrentUserAuthenticated();
         verify(availabilityRepository, never()).save(any(Availability.class));
     }
+
+    @Test
+    void getAvailabilitiesForProvider_shouldReturnSortedAvailabilities() {
+        String providerId = "provider-id-123";
+        LocalDate from = LocalDate.of(2026, 2, 1);
+        LocalDate to = LocalDate.of(2026, 2, 3);
+
+        Availability a1 = new Availability();
+        a1.setDate(LocalDate.of(2026, 2, 2));
+        a1.setStartTime(LocalTime.of(10, 0));
+
+        Availability a2 = new Availability();
+        a2.setDate(LocalDate.of(2026, 2, 1));
+        a2.setStartTime(LocalTime.of(11, 0));
+
+        Availability a3 = new Availability();
+        a3.setDate(LocalDate.of(2026, 2, 1));
+        a3.setStartTime(LocalTime.of(9, 0));
+
+        when(availabilityRepository.findByProviderIdAndDateBetween(providerId, from, to))
+                .thenReturn(List.of(a1, a2, a3));
+
+        var result = availabilityService.getAvailabilitiesForProvider(providerId, from, to);
+
+        assertThat(result).hasSize(3);
+
+        // Sorted by date, then time
+        assertThat(result.get(0)).isEqualTo(a3); // Feb 1 @ 09:00
+        assertThat(result.get(1)).isEqualTo(a2); // Feb 1 @ 11:00
+        assertThat(result.get(2)).isEqualTo(a1); // Feb 2 @ 10:00
+    }
+
+    @Test
+    void updateAvailability_shouldUpdate_whenOwnerIsLoggedIn() {
+        Availability availability = new Availability();
+        availability.setId("av-1");
+        availability.setProviderId(providerUser.getId());
+
+        when(userService.getCurrentUser()).thenReturn(providerUser);
+        when(availabilityRepository.findById("av-1")).thenReturn(java.util.Optional.of(availability));
+        when(availabilityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        LocalDate newDate = LocalDate.of(2026, 2, 10);
+        LocalTime newStart = LocalTime.of(10, 0);
+        LocalTime newEnd = LocalTime.of(12, 0);
+
+        Availability result = availabilityService.updateAvailability("av-1", newDate, newStart, newEnd);
+
+        assertThat(result.getDate()).isEqualTo(newDate);
+        assertThat(result.getStartTime()).isEqualTo(newStart);
+        assertThat(result.getEndTime()).isEqualTo(newEnd);
+
+        verify(availabilityRepository).save(availability);
+    }
+
+    @Test
+    void deleteAvailability_shouldDelete_whenProviderOwnsAvailability() {
+        Availability availability = new Availability();
+        availability.setId("av-1");
+        availability.setProviderId(providerUser.getId());
+
+        when(userService.getCurrentUser()).thenReturn(providerUser);
+        when(availabilityRepository.findById("av-1"))
+                .thenReturn(java.util.Optional.of(availability));
+
+        availabilityService.deleteAvailability("av-1");
+
+        verify(availabilityRepository).delete(availability);
+    }
+
 }
