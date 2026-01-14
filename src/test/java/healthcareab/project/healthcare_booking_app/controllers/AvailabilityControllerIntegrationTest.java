@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
-class AvailabilityControllerTest {
+class AvailabilityControllerIntegrationTest {
 
     @Mock
     private AvailabilityService availabilityService;
