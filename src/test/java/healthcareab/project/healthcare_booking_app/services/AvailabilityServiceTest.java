@@ -17,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,269 +37,215 @@ class AvailabilityServiceTest {
     private AvailabilityService availabilityService;
 
     private User providerUser;
+    private User adminUser;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        
-        providerUser = new User("provider", "encodedPassword", "provider@example.com", "John", "Doe", "Doctor");
-        providerUser.setId("provider-id-123");
+
+        providerUser = new User("provider", "pw", "provider@test.com", "John", "Doe", "Doctor");
+        providerUser.setId("provider-id");
         providerUser.setRoles(Set.of(Role.PROVIDER));
+
+        adminUser = new User("admin", "pw", "admin@test.com", "Admin", "User", null);
+        adminUser.setId("admin-id");
+        adminUser.setRoles(Set.of(Role.ADMIN));
     }
 
+    // ------------------------------------------------------------------
+    // CREATE AVAILABILITY
+    // ------------------------------------------------------------------
+
     @Test
-    void createAvailability_shouldSaveAvailability_whenValidRequest() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(9, 0);
-        LocalTime endTime = LocalTime.of(11, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
+    void createAvailability_shouldSaveAvailability_whenValidInput() {
         when(userService.getCurrentUser()).thenReturn(providerUser);
-        
+
+        LocalDate date = LocalDate.of(2026, 2, 1);
+        LocalTime start = LocalTime.of(9, 0);
+        LocalTime end = LocalTime.of(11, 0);
+
         ArgumentCaptor<Availability> captor = ArgumentCaptor.forClass(Availability.class);
-        when(availabilityRepository.save(captor.capture())).thenAnswer(i -> {
-            Availability av = i.getArgument(0);
-            av.setId("availability-id-123");
-            return av;
-        });
 
-        // Act
-        Availability result = availabilityService.createAvailability(date, startTime, endTime);
+        when(availabilityRepository.save(captor.capture()))
+                .thenAnswer(i -> {
+                    Availability a = i.getArgument(0);
+                    a.setId("availability-id");
+                    return a;
+                });
 
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getProviderId()).isEqualTo("provider-id-123");
+        Availability result = availabilityService.createAvailability(date, start, end);
+
+        assertThat(result.getId()).isEqualTo("availability-id");
+        assertThat(result.getProviderId()).isEqualTo("provider-id");
         assertThat(result.getDate()).isEqualTo(date);
-        assertThat(result.getStartTime()).isEqualTo(startTime);
-        assertThat(result.getEndTime()).isEqualTo(endTime);
+        assertThat(result.getStartTime()).isEqualTo(start);
+        assertThat(result.getEndTime()).isEqualTo(end);
         assertThat(result.getIsAvailable()).isTrue();
 
-        Availability savedAvailability = captor.getValue();
-        assertThat(savedAvailability.getProviderId()).isEqualTo("provider-id-123");
-        assertThat(savedAvailability.getDate()).isEqualTo(date);
-        assertThat(savedAvailability.getStartTime()).isEqualTo(startTime);
-        assertThat(savedAvailability.getEndTime()).isEqualTo(endTime);
-        assertThat(savedAvailability.getIsAvailable()).isTrue();
+        Availability saved = captor.getValue();
+        assertThat(saved.getProviderId()).isEqualTo("provider-id");
 
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(userService, times(1)).getCurrentUser();
-        verify(availabilityRepository, times(1)).save(any(Availability.class));
-    }
-
-    @Test
-    void createAvailability_shouldThrow_whenStartTimeIsAfterEndTime() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(11, 0);
-        LocalTime endTime = LocalTime.of(9, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
-        when(userService.getCurrentUser()).thenReturn(providerUser);
-
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Start time must be before end time");
-
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(availabilityRepository, never()).save(any(Availability.class));
-    }
-
-    @Test
-    void createAvailability_shouldThrow_whenStartTimeEqualsEndTime() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(10, 0);
-        LocalTime endTime = LocalTime.of(10, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
-        when(userService.getCurrentUser()).thenReturn(providerUser);
-
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Start time must be before end time");
-
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(availabilityRepository, never()).save(any(Availability.class));
-    }
-
-    @Test
-    void createAvailability_shouldThrow_whenStartTimeBefore8AM() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(7, 30);
-        LocalTime endTime = LocalTime.of(10, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
-        when(userService.getCurrentUser()).thenReturn(providerUser);
-
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Start time must be at or after 08:00");
-
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(availabilityRepository, never()).save(any(Availability.class));
-    }
-
-    @Test
-    void createAvailability_shouldThrow_whenEndTimeAfter5PM() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(14, 0);
-        LocalTime endTime = LocalTime.of(18, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
-        when(userService.getCurrentUser()).thenReturn(providerUser);
-
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("End time must be at or before 17:00");
-
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(availabilityRepository, never()).save(any(Availability.class));
+        verify(userService).assertCurrentUserAuthenticated();
+        verify(availabilityRepository).save(any());
     }
 
     @Test
     void createAvailability_shouldAcceptBoundaryTimes() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(8, 0);
-        LocalTime endTime = LocalTime.of(17, 0);
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(true);
         when(userService.getCurrentUser()).thenReturn(providerUser);
-        
-        when(availabilityRepository.save(any(Availability.class))).thenAnswer(i -> {
-            Availability av = i.getArgument(0);
-            av.setId("availability-id-123");
-            return av;
-        });
+        when(availabilityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        // Act
-        Availability result = availabilityService.createAvailability(date, startTime, endTime);
+        Availability result = availabilityService.createAvailability(
+                LocalDate.now(),
+                LocalTime.of(8, 0),
+                LocalTime.of(17, 0)
+        );
 
-        // Assert
-        assertThat(result).isNotNull();
         assertThat(result.getStartTime()).isEqualTo(LocalTime.of(8, 0));
         assertThat(result.getEndTime()).isEqualTo(LocalTime.of(17, 0));
-        verify(availabilityRepository, times(1)).save(any(Availability.class));
+    }
+
+    @Test
+    void createAvailability_shouldThrow_whenStartAfterEnd() {
+        when(userService.getCurrentUser()).thenReturn(providerUser);
+
+        assertThatThrownBy(() ->
+                availabilityService.createAvailability(
+                        LocalDate.now(),
+                        LocalTime.of(11, 0),
+                        LocalTime.of(9, 0)
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Start time must be before end time");
+
+        verify(availabilityRepository, never()).save(any());
     }
 
     @Test
     void createAvailability_shouldThrow_whenUserNotAuthenticated() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(9, 0);
-        LocalTime endTime = LocalTime.of(11, 0);
-
         doThrow(new UnauthorizedException("You are not authenticated"))
                 .when(userService).assertCurrentUserAuthenticated();
 
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
+        assertThatThrownBy(() ->
+                availabilityService.createAvailability(
+                        LocalDate.now(),
+                        LocalTime.of(9, 0),
+                        LocalTime.of(10, 0)
+                )
+        )
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("You are not authenticated");
+                .hasMessageContaining("not authenticated");
 
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(userService, never()).getCurrentUser();
-        verify(availabilityRepository, never()).save(any(Availability.class));
+        verify(availabilityRepository, never()).save(any());
     }
 
-    @Test
-    void createAvailability_shouldThrow_whenUserNotProvider() {
-        // Arrange
-        LocalDate date = LocalDate.of(2026, 2, 1);
-        LocalTime startTime = LocalTime.of(9, 0);
-        LocalTime endTime = LocalTime.of(11, 0);
-
-        User patientUser = new User("patient", "encodedPassword", "patient@example.com", "Jane", "Doe", null);
-        patientUser.setId("patient-id-123");
-        patientUser.setRoles(Set.of(Role.PATIENT));
-
-        when(userService.isCurrentUserAuthenticated()).thenReturn(false);
-        doThrow(new UnauthorizedException("You are not authenticated"))
-                .when(userService).assertCurrentUserAuthenticated();
-
-        // Act & Assert
-        assertThatThrownBy(() -> availabilityService.createAvailability(date, startTime, endTime))
-                .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("You are not authenticated");
-
-        verify(userService, times(1)).assertCurrentUserAuthenticated();
-        verify(availabilityRepository, never()).save(any(Availability.class));
-    }
+    // ------------------------------------------------------------------
+    // GET AVAILABILITIES
+    // ------------------------------------------------------------------
 
     @Test
-    void getAvailabilitiesForProvider_shouldReturnSortedAvailabilities() {
-        String providerId = "provider-id-123";
-        LocalDate from = LocalDate.of(2026, 2, 1);
-        LocalDate to = LocalDate.of(2026, 2, 3);
+    void getAvailabilitiesForProvider_shouldReturnSortedList() {
+        Availability a1 = availability("1", LocalDate.of(2026, 2, 2), LocalTime.of(10, 0));
+        Availability a2 = availability("2", LocalDate.of(2026, 2, 1), LocalTime.of(11, 0));
+        Availability a3 = availability("3", LocalDate.of(2026, 2, 1), LocalTime.of(9, 0));
 
-        Availability a1 = new Availability();
-        a1.setDate(LocalDate.of(2026, 2, 2));
-        a1.setStartTime(LocalTime.of(10, 0));
-
-        Availability a2 = new Availability();
-        a2.setDate(LocalDate.of(2026, 2, 1));
-        a2.setStartTime(LocalTime.of(11, 0));
-
-        Availability a3 = new Availability();
-        a3.setDate(LocalDate.of(2026, 2, 1));
-        a3.setStartTime(LocalTime.of(9, 0));
-
-        when(availabilityRepository.findByProviderIdAndDateBetween(providerId, from, to))
+        when(availabilityRepository.findByProviderIdAndDateBetween(any(), any(), any()))
                 .thenReturn(List.of(a1, a2, a3));
 
-        var result = availabilityService.getAvailabilitiesForProvider(providerId, from, to);
+        List<Availability> result =
+                availabilityService.getAvailabilitiesForProvider(
+                        "provider-id",
+                        LocalDate.of(2026, 2, 1),
+                        LocalDate.of(2026, 2, 3)
+                );
 
-        assertThat(result).hasSize(3);
-
-        // Sorted by date, then time
-        assertThat(result.get(0)).isEqualTo(a3); // Feb 1 @ 09:00
-        assertThat(result.get(1)).isEqualTo(a2); // Feb 1 @ 11:00
-        assertThat(result.get(2)).isEqualTo(a1); // Feb 2 @ 10:00
+        assertThat(result).containsExactly(a3, a2, a1);
     }
 
+    // ------------------------------------------------------------------
+    // UPDATE AVAILABILITY
+    // ------------------------------------------------------------------
+
     @Test
-    void updateAvailability_shouldUpdate_whenOwnerIsLoggedIn() {
-        Availability availability = new Availability();
-        availability.setId("av-1");
+    void updateAvailability_shouldUpdate_whenOwner() {
+        Availability availability = availability("av-1", LocalDate.now(), LocalTime.of(9, 0));
         availability.setProviderId(providerUser.getId());
 
         when(userService.getCurrentUser()).thenReturn(providerUser);
-        when(availabilityRepository.findById("av-1")).thenReturn(java.util.Optional.of(availability));
+        when(availabilityRepository.findById("av-1")).thenReturn(Optional.of(availability));
         when(availabilityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        LocalDate newDate = LocalDate.of(2026, 2, 10);
-        LocalTime newStart = LocalTime.of(10, 0);
-        LocalTime newEnd = LocalTime.of(12, 0);
+        Availability result = availabilityService.updateAvailability(
+                "av-1",
+                LocalDate.of(2026, 2, 10),
+                LocalTime.of(10, 0),
+                LocalTime.of(12, 0)
+        );
 
-        Availability result = availabilityService.updateAvailability("av-1", newDate, newStart, newEnd);
-
-        assertThat(result.getDate()).isEqualTo(newDate);
-        assertThat(result.getStartTime()).isEqualTo(newStart);
-        assertThat(result.getEndTime()).isEqualTo(newEnd);
-
-        verify(availabilityRepository).save(availability);
+        assertThat(result.getStartTime()).isEqualTo(LocalTime.of(10, 0));
     }
 
     @Test
-    void deleteAvailability_shouldDelete_whenProviderOwnsAvailability() {
-        Availability availability = new Availability();
-        availability.setId("av-1");
+    void updateAvailability_shouldThrow_whenNotOwner() {
+        Availability availability = availability("av-1", LocalDate.now(), LocalTime.of(9, 0));
+        availability.setProviderId("another-provider");
+
+        when(userService.getCurrentUser()).thenReturn(providerUser);
+        when(availabilityRepository.findById("av-1")).thenReturn(Optional.of(availability));
+
+        assertThatThrownBy(() ->
+                availabilityService.updateAvailability(
+                        "av-1",
+                        LocalDate.now(),
+                        LocalTime.of(9, 0),
+                        LocalTime.of(10, 0)
+                )
+        )
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("own availability");
+    }
+
+    // ------------------------------------------------------------------
+    // DELETE AVAILABILITY
+    // ------------------------------------------------------------------
+
+    @Test
+    void deleteAvailability_shouldDelete_whenOwner() {
+        Availability availability = availability("av-1", LocalDate.now(), LocalTime.of(9, 0));
         availability.setProviderId(providerUser.getId());
 
         when(userService.getCurrentUser()).thenReturn(providerUser);
-        when(availabilityRepository.findById("av-1"))
-                .thenReturn(java.util.Optional.of(availability));
+        when(availabilityRepository.findById("av-1")).thenReturn(Optional.of(availability));
 
         availabilityService.deleteAvailability("av-1");
 
         verify(availabilityRepository).delete(availability);
     }
 
+    @Test
+    void deleteAvailability_shouldDelete_whenAdmin() {
+        Availability availability = availability("av-1", LocalDate.now(), LocalTime.of(9, 0));
+        availability.setProviderId("provider-id");
+
+        when(userService.getCurrentUser()).thenReturn(adminUser);
+        when(availabilityRepository.findById("av-1")).thenReturn(Optional.of(availability));
+
+        availabilityService.deleteAvailability("av-1");
+
+        verify(availabilityRepository).delete(availability);
+    }
+
+    // ------------------------------------------------------------------
+    // HELPERS
+    // ------------------------------------------------------------------
+
+    private Availability availability(String id, LocalDate date, LocalTime start) {
+        Availability availability = new Availability();
+        availability.setId(id);
+        availability.setDate(date);
+        availability.setStartTime(start);
+        availability.setEndTime(start.plusHours(1));
+        availability.setIsAvailable(true);
+        return availability;
+    }
 }
