@@ -43,11 +43,19 @@ public class AvailabilityController {
 
     @GetMapping("/all")
     public ResponseEntity<List<AvailabilityResponse>> getAvailability(
-            @RequestParam String providerId,
+            @RequestParam(required = false) String providerId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-    //Jag tror vi behöver dessa params för att få rätt data med frontend när vi ska välja dagar. Annars kan vi ta bort om det ej behövs
-        List<Availability> availabilities = availabilityService.getAvailabilitiesForProvider(providerId, from, to);
+
+        List<Availability> availabilities;
+
+        if (providerId == null || providerId.isBlank()) {
+            // Use currently authenticated provider
+            availabilities = availabilityService.getAvailabilitiesForCurrentProvider(from, to);
+        } else {
+            // Admin asking for a specific provider
+            availabilities = availabilityService.getAvailabilitiesForProvider(providerId, from, to);
+        }
 
         List<AvailabilityResponse> responses = availabilities.stream()
                 .map(AvailabilityResponse::fromEntity)
