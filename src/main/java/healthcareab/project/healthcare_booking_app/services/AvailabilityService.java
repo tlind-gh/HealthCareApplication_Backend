@@ -118,4 +118,10 @@ public class AvailabilityService {
         
         availabilityRepository.delete(availability);
     }
+    // helper method for getting availbility in frontend
+    public List<Availability> getAvailabilitiesForCurrentProvider(LocalDate from, LocalDate to) {
+        userService.assertCurrentUserAuthenticated();
+        User currentUser = userService.getCurrentUser();
+        return getAvailabilitiesForProvider(currentUser.getId(), from, to);
+    }
 }

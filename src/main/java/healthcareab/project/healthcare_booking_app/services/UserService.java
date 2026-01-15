@@ -21,10 +21,6 @@ public class UserService {
         return userAuthRepository.authenticateAndExtractUser();
     }
     
-    public String getCurrentUserId() {
-        return getCurrentUser().getId();
-    }
-    
     public boolean isCurrentUserAuthenticated() {
         return getCurrentUser().getRoles().contains(Role.PROVIDER);
     }
