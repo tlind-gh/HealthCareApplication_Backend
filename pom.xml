@@ -148,7 +148,6 @@
 				<configuration>
 					<nvdApiDelay>8000</nvdApiDelay>
 					<nvdMaxRetryCount>10</nvdMaxRetryCount>
-					<autoUpdate>false</autoUpdate>
 					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
 				</configuration>
 			</plugin>
