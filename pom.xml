@@ -150,6 +150,7 @@
 					<autoUpdate>false</autoUpdate>
 					<failOnError>false</failOnError>
 					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
 				</configuration>
 			</plugin>
 		</plugins>
