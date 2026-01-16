@@ -147,6 +147,12 @@
 				<configuration>
 					<!--suppress UnresolvedMavenProperty -->
 					<nvdApiKey>${nvdApiKey}</nvdApiKey>
+
+					<nvdApiDelay>8000</nvdApiDelay>
+					<nvdMaxRetryCount>10</nvdMaxRetryCount>
+
+					<nvdValidForHours>24</nvdValidForHours>
+
 					<failBuildOnCVSS>7</failBuildOnCVSS>
 				</configuration>
 			</plugin>
