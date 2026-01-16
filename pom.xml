@@ -147,15 +147,10 @@
 				<configuration>
 					<!--suppress UnresolvedMavenProperty -->
 					<nvdApiKey>${nvdApiKey}</nvdApiKey>
-
 					<nvdApiDelay>8000</nvdApiDelay>
 					<nvdMaxRetryCount>10</nvdMaxRetryCount>
-					<!-- CRITICAL -->
 					<skipUpdate>true</skipUpdate>
-
-					<!-- Prevent build failure if DB exists -->
 					<failOnError>false</failOnError>
-
 					<failBuildOnCVSS>7</failBuildOnCVSS>
 				</configuration>
 			</plugin>
