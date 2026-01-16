@@ -26,6 +26,15 @@ jobs:
           cat src/test/resources/application-test.yml
       - name: Build and test with coverage
         run: mvn verify jacoco:report
+      - name: Verify NVD API key is present
+        run: |
+                 if [ -z "${{ secrets.NVD_API_KEY }}" ]; then
+                   echo "NVD_API_KEY is MISSING"
+                   exit 1
+                 else
+                   echo "NVD_API_KEY is present"
+                 fi
+
       - name: Cache OWASP Dependency Check data
         uses: actions/cache@v4
         with:
