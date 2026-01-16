@@ -145,11 +145,9 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>10.0.2</version>
 				<configuration>
-					<!--suppress UnresolvedMavenProperty -->
-					<nvdApiKey>${nvdApiKey}</nvdApiKey>
 					<nvdApiDelay>8000</nvdApiDelay>
 					<nvdMaxRetryCount>10</nvdMaxRetryCount>
-					<skipUpdate>true</skipUpdate>
+					<autoUpdate>false</autoUpdate>
 					<failOnError>false</failOnError>
 					<failBuildOnCVSS>7</failBuildOnCVSS>
 				</configuration>
