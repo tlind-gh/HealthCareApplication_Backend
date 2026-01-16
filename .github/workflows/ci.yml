@@ -31,7 +31,5 @@ jobs:
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: owasp-${{ runner.os }}
-          restore-keys: |
-            owasp-${{ runner.os }}
       - name: Security scan
-        run: mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+        run: mvn org.owasp:dependency-check-maven:check
