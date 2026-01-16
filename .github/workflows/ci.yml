@@ -34,6 +34,5 @@ jobs:
           restore-keys: |
             owasp-${{ runner.os }}
       - name: Security scan
-        run: mvn org.owasp:dependency-check-maven:check
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+
