@@ -12,16 +12,16 @@ public class Availability {
     @Id
     private String id;
     
-    @NotNull
+    @NotNull(message = "A provider ID is required")
     private String providerId;
     
-    @NotNull
+    @NotNull(message = "A date is required")
     private LocalDate date;
     
-    @NotNull
+    @NotNull(message = "A start time is required")
     private LocalTime startTime;
     
-    @NotNull
+    @NotNull(message = "A end time is required")
     private LocalTime endTime;
     
     private Boolean isAvailable = true;
