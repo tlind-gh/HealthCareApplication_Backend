@@ -55,6 +55,17 @@ public class AppointmentService {
             throw new UnauthorizedException("Start time must be before end time");
         }
         
+        boolean available = availabilityService.isTimeAvailable(
+                request.getProviderId(),
+                request.getDate(),
+                request.getStartTime(),
+                request.getEndTime()
+        );
+        
+        if (!available) {
+            throw new IllegalArgumentException("Selected time is not available");
+        }
+        
         Appointment appointment = new Appointment();
         appointment.setPatientId(patient.getId());
         appointment.setProviderId(request.getProviderId());
