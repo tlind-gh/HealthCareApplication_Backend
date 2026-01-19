@@ -12,7 +12,7 @@ public class Availability {
     @Id
     private String id;
     
-    @NotNull
+    @NotNull(message="")
     private String providerId;
     
     @NotNull

@@ -1,6 +1,7 @@
 package healthcareab.project.healthcare_booking_app.models;
 
 
+import healthcareab.project.healthcare_booking_app.models.supportClasses.AppointmentStatus;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,19 +15,24 @@ public class Appointment {
     @Id
     private String id;
     
-    @NotNull
+    
+    @NotNull(message = "A patient ID is required")
+    private String patientId;
+    
+    @NotNull(message = "A provider ID is required")
     private String providerId;
     
-    @NotNull
+    @NotNull(message = "A date is required")
     private LocalDate date;
     
-    @NotNull
+    @NotNull(message = "A start time is required")
     private LocalTime startTime;
     
-    @NotNull
+    @NotNull(message = "A end time is required")
     private LocalTime endTime;
     
-    private String status;
+    @NotNull(message = "A appointment status is required")
+    private AppointmentStatus status;
     
     
     public String getId() {
@@ -35,6 +41,14 @@ public class Appointment {
     
     public void setId(String id) {
         this.id = id;
+    }
+    
+    public String getPatientId() {
+        return patientId;
+    }
+    
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
     
     public String getProviderId() {
@@ -69,11 +83,11 @@ public class Appointment {
         this.endTime = endTime;
     }
     
-    public String getStatus() {
+    public AppointmentStatus getStatus() {
         return status;
     }
     
-    public void setStatus(String status) {
+    public void setStatus(AppointmentStatus status) {
         this.status = status;
     }
 }
