@@ -80,3 +80,70 @@ jobs:
           fi
 
           echo "=============================================="
+      - name: Write summary
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Build status: ✅" >> $GITHUB_STEP_SUMMARY
+      - name: CI Summary 2
+        if: always()
+        run: |
+          echo "## 🚦 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ############################
+          # Unit Tests
+          ############################
+          echo "### 🧪 Unit Tests" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d target/surefire-reports ]; then
+            TESTS=$(grep -R "Tests run:" target/surefire-reports/*.txt | awk '{sum+=$3} END {print sum}')
+            FAILURES=$(grep -R "Failures:" target/surefire-reports/*.txt | awk '{sum+=$5} END {print sum}')
+            ERRORS=$(grep -R "Errors:" target/surefire-reports/*.txt | awk '{sum+=$7} END {print sum}')
+            SKIPPED=$(grep -R "Skipped:" target/surefire-reports/*.txt | awk '{sum+=$9} END {print sum}')
+            PASSED=$((TESTS - FAILURES - ERRORS - SKIPPED))
+
+            echo "- **Passed:** $PASSED / $TESTS" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failures:** $FAILURES" >> $GITHUB_STEP_SUMMARY
+            echo "- **Errors:** $ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo "- **Skipped:** $SKIPPED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ No test reports found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ############################
+          # Coverage
+          ############################
+          echo "### 📊 Test Coverage" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            COVERED=$(grep -o 'covered="[0-9]*"' target/site/jacoco/jacoco.xml | head -1 | grep -o '[0-9]*')
+            MISSED=$(grep -o 'missed="[0-9]*"' target/site/jacoco/jacoco.xml | head -1 | grep -o '[0-9]*')
+            TOTAL=$((COVERED + MISSED))
+            COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED/$TOTAL)*100}")
+
+            echo "- **Line Coverage:** $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ JaCoCo report not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ############################
+          # Security Scan
+          ############################
+          echo "### 🔐 Security Scan (OWASP Dependency-Check)" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f target/dependency-check-report.xml ]; then
+            VULNS=$(grep -o "<vulnerability>" target/dependency-check-report.xml | wc -l)
+
+            if [ "$VULNS" -gt 0 ]; then
+              echo "- ❌ **Vulnerabilities found:** $VULNS" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ **No vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "- ⚠️ OWASP report not found" >> $GITHUB_STEP_SUMMARY
+          fi
