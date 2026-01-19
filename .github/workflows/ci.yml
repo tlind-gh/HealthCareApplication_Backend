@@ -2,7 +2,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ main ]
+    #branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -35,5 +35,3 @@ jobs:
             owasp-${{ runner.os }}
       - name: Security scan
         run: mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
-
-

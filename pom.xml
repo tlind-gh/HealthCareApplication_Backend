@@ -21,7 +21,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<tomcat.version>10.1.33</tomcat.version>
+		<tomcat.version>10.1.50</tomcat.version>
 	</properties>
 
 	<dependencies>
@@ -144,10 +144,11 @@
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
-				<version>10.0.2</version>
+				<version>12.1.3</version>
 				<configuration>
+					<failBuildOnCVSS>7</failBuildOnCVSS>
 					<nvdApiDelay>8000</nvdApiDelay>
-					<nvdMaxRetryCount>10</nvdMaxRetryCount>
+					<centralAnalyzerEnabled>false</centralAnalyzerEnabled>
 					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
 				</configuration>
 			</plugin>
