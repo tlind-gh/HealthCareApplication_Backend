@@ -124,4 +124,13 @@ public class AvailabilityService {
         User currentUser = userService.getCurrentUser();
         return getAvailabilitiesForProvider(currentUser.getId(), from, to);
     }
+    
+    public boolean isTimeAvailable(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return availabilityRepository.isTimeAvailable(
+                providerId,
+                date,
+                startTime,
+                endTime
+        );
+    }
 }
