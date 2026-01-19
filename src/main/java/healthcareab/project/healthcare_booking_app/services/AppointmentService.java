@@ -1,5 +1,7 @@
 package healthcareab.project.healthcare_booking_app.services;
 
+import healthcareab.project.healthcare_booking_app.dto.AppointmentRequest;
+import healthcareab.project.healthcare_booking_app.dto.AppointmentResponse;
 import healthcareab.project.healthcare_booking_app.exceptions.IllegalArgumentException;
 import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.Appointment;
@@ -30,33 +32,49 @@ public class AppointmentService {
         this.userRepository = userRepository;
     }
     
-    public Appointment createAppointment(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        // make sure user that books appointment is a patient
+    public AppointmentResponse createAppointment(AppointmentRequest request) {
+        // role check so only patient can create booking
         User patient = userService.getCurrentUser();
+        
         if(!patient.getRoles().contains(Role.PATIENT)) {
             throw new UnauthorizedException("Only patients can book appointments");
         }
         
         // validate provider
-        User provider = userRepository.findById(providerId)
-                .orElseThrow(() -> new UnauthorizedException("Provider not found"));
+        User provider = userRepository.findById(request.getProviderId())
+                .orElseThrow(() -> new IllegalArgumentException("Provider not found"));
         
         if(!provider.getRoles().contains(Role.PROVIDER)) {
-            throw new UnauthorizedException("Selected user is not a provider");
+            throw new UnauthorizedException("Only providers can book appointments");
         }
         
         // validate time
-        if(startTime.isBefore(endTime)) {
-            throw new IllegalArgumentException("Start time must be before end time");
+        if(!request.getStartTime().isBefore(request.getEndTime())) {
+            throw new UnauthorizedException("Start time must be before end time");
         }
         
         Appointment appointment = new Appointment();
         appointment.setPatientId(patient.getId());
-        appointment.setProviderId(providerId);
-        appointment.setDate(date);
-        appointment.setStartTime(startTime);
-        appointment.setEndTime(endTime);
+        appointment.setProviderId(request.getProviderId());
+        appointment.setDate(request.getDate());
+        appointment.setStartTime(request.getStartTime());
+        appointment.setEndTime(request.getEndTime());
         appointment.setStatus(AppointmentStatus.BOOKED);
-        return appointmentRepository.save(appointment);
+        
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        
+        return mapToResponse(savedAppointment);
+    }
+    
+    private AppointmentResponse mapToResponse(Appointment appointment) {
+        return new AppointmentResponse(
+                appointment.getId(),
+                appointment.getPatientId(),
+                appointment.getProviderId(),
+                appointment.getDate(),
+                appointment.getStartTime(),
+                appointment.getEndTime(),
+                appointment.getStatus()
+        );
     }
 }
