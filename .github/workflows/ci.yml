@@ -35,3 +35,48 @@ jobs:
             owasp-${{ runner.os }}
       - name: Security scan
         run: mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+      - name: CI Summary
+        if: always()
+        run: |
+          echo "================ CI SUMMARY ================"
+
+          echo ""
+          echo "---- Unit Test Results ----"
+          if [ -d target/surefire-reports ]; then
+            TESTS=$(grep -R "Tests run:" target/surefire-reports/*.txt | awk '{sum+=$3} END {print sum}')
+            FAILURES=$(grep -R "Failures:" target/surefire-reports/*.txt | awk '{sum+=$5} END {print sum}')
+            ERRORS=$(grep -R "Errors:" target/surefire-reports/*.txt | awk '{sum+=$7} END {print sum}')
+            SKIPPED=$(grep -R "Skipped:" target/surefire-reports/*.txt | awk '{sum+=$9} END {print sum}')
+
+            PASSED=$((TESTS - FAILURES - ERRORS - SKIPPED))
+            echo "Passed: $PASSED / $TESTS"
+          else
+            echo "No test reports found"
+          fi
+
+          echo ""
+          echo "---- Test Coverage ----"
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            COVERED=$(grep -o 'covered="[0-9]*"' target/site/jacoco/jacoco.xml | head -1 | grep -o '[0-9]*')
+            MISSED=$(grep -o 'missed="[0-9]*"' target/site/jacoco/jacoco.xml | head -1 | grep -o '[0-9]*')
+            TOTAL=$((COVERED + MISSED))
+            COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED/$TOTAL)*100}")
+            echo "Line Coverage: $COVERAGE%"
+          else
+            echo "JaCoCo report not found"
+          fi
+
+          echo ""
+          echo "---- Security Scan (OWASP Dependency-Check) ----"
+          if [ -f target/dependency-check-report.xml ]; then
+            VULNS=$(grep -o "<vulnerability>" target/dependency-check-report.xml | wc -l)
+            if [ "$VULNS" -gt 0 ]; then
+              echo "❌ Vulnerabilities found: $VULNS"
+            else
+              echo "✅ No vulnerabilities found"
+            fi
+          else
+            echo "OWASP report not found"
+          fi
+
+          echo "=============================================="
