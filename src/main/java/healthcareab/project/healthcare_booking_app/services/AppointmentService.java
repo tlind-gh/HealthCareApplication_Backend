@@ -10,10 +10,12 @@ import healthcareab.project.healthcare_booking_app.models.supportClasses.Appoint
 import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.repositories.AppointmentRepository;
 import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@Service
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final AvailabilityService availabilityService;
