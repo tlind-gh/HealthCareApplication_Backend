@@ -133,4 +133,9 @@ public class AvailabilityService {
                 endTime
         );
     }
+    
+    public Availability getAvailableSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return availabilityRepository.findAvailableSlot(providerId, date, startTime, endTime)
+                .orElseThrow(() -> new NotFoundException("Availability not found"));
+    }
 }
