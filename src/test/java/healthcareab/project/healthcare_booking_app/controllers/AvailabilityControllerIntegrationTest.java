@@ -32,14 +32,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AvailabilityControllerIntegrationTest {
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
-
     @InjectMocks
     private AvailabilityController availabilityController;
 
     @Mock
     private AvailabilityService availabilityService;
+
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
 
     private User provider;
     private User patient;

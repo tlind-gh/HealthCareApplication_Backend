@@ -105,8 +105,9 @@ public class AppointmentService {
         if (appointment.getStatus().equals(AppointmentStatus.CANCELLED)) {
             throw new UnsupportedOperationException("Appointment has already been cancelled");
         }
-        //TODO: add check for last cancellation time
+        //TODO: add check for last cancellation time (include in other issue).
         appointment.setStatus(AppointmentStatus.CANCELLED);
+        //TODO: set availability to isAvailable again!!!
         return mapToResponse(appointmentRepository.save(appointment));
     }
 
