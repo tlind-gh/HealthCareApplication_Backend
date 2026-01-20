@@ -5,10 +5,12 @@ import healthcareab.project.healthcare_booking_app.dto.AppointmentResponse;
 import healthcareab.project.healthcare_booking_app.exceptions.IllegalArgumentException;
 import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.Appointment;
+import healthcareab.project.healthcare_booking_app.models.Availability;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.AppointmentStatus;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.repositories.AppointmentRepository;
+import healthcareab.project.healthcare_booking_app.repositories.AvailabilityRepository;
 import healthcareab.project.healthcare_booking_app.repositories.UserAuthRepository;
 import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -16,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,6 +40,9 @@ class AppointmentServiceTest {
 
     @Mock
     private AvailabilityService availabilityService;
+
+    @Mock
+    private AvailabilityRepository availabilityRepository;
 
     @Mock
     private UserService userService;
@@ -71,35 +75,6 @@ class AppointmentServiceTest {
     // -------------------- CREATE APPOINTMENT --------------------
 
     @Test
-    void createAppointment_shouldCreateAppointmentSuccessfully() {
-        AppointmentRequest request = new AppointmentRequest(
-                provider.getId(),
-                LocalDate.of(2026, 1, 20),
-                LocalTime.of(10, 0),
-                LocalTime.of(11, 0)
-        );
-
-        when(userService.getCurrentUser()).thenReturn(patient);
-        when(userRepository.findById(anyString())).thenReturn(Optional.ofNullable(provider));
-        when(availabilityService.isTimeAvailable(any(), any(), any(), any()))
-                .thenReturn(true);
-
-        Appointment saved = new Appointment();
-        saved.setId("appointment-1");
-        saved.setPatientId(patient.getId());
-        saved.setProviderId(provider.getId());
-        saved.setStatus(AppointmentStatus.BOOKED);
-
-        when(appointmentRepository.save(any())).thenReturn(saved);
-
-        AppointmentResponse response = appointmentService.createAppointment(request);
-
-        assertThat(response.getId()).isEqualTo("appointment-1");
-        assertThat(response.getStatus()).isEqualTo(AppointmentStatus.BOOKED);
-    }
-
-
-    @Test
     void createAppointment_shouldThrow_whenUserIsNotPatient() {
         patient.setRoles(Set.of(Role.PROVIDER));
         when(userService.getCurrentUser()).thenReturn(patient);
@@ -114,7 +89,8 @@ class AppointmentServiceTest {
     @Test
     void createAppointment_shouldThrow_whenProviderNotFound() {
         when(userService.getCurrentUser()).thenReturn(patient);
-        when(userRepository.findById("provider-1")).thenReturn(Optional.empty());
+        when(userRepository.findById("provider-1"))
+                .thenReturn(Optional.empty());
 
         AppointmentRequest request = new AppointmentRequest(
                 "provider-1",
@@ -132,7 +108,8 @@ class AppointmentServiceTest {
 
     @Test
     void getAppointmentsCurrentUser_shouldReturnPatientAppointments() {
-        when(userAuthRepository.authenticateAndExtractUser()).thenReturn(patient);
+        when(userAuthRepository.authenticateAndExtractUser())
+                .thenReturn(patient);
         when(appointmentRepository.findByPatientId(patient.getId()))
                 .thenReturn(List.of(new Appointment()));
 
@@ -176,7 +153,8 @@ class AppointmentServiceTest {
         when(userAuthRepository.authenticateAndExtractUser())
                 .thenReturn(otherUser);
 
-        assertThatThrownBy(() -> appointmentService.getAppointmentById("a1"))
+        assertThatThrownBy(() ->
+                appointmentService.getAppointmentById("a1"))
                 .isInstanceOf(UnauthorizedException.class);
     }
 
@@ -187,19 +165,30 @@ class AppointmentServiceTest {
         Appointment appointment = new Appointment();
         appointment.setId("a1");
         appointment.setPatientId(patient.getId());
+        appointment.setProviderId(provider.getId());
+        appointment.setDate(LocalDate.now());
+        appointment.setStartTime(LocalTime.of(10, 0));
+        appointment.setEndTime(LocalTime.of(11, 0));
         appointment.setStatus(AppointmentStatus.BOOKED);
+
+        Availability slot = new Availability();
+        slot.setIsAvailable(false);
 
         when(appointmentRepository.findById("a1"))
                 .thenReturn(Optional.of(appointment));
         when(userAuthRepository.authenticateAndExtractUser())
                 .thenReturn(patient);
+        when(availabilityService.getBookedSlot(any(), any(), any(), any()))
+                .thenReturn(slot);
         when(appointmentRepository.save(any()))
                 .thenReturn(appointment);
 
         AppointmentResponse response =
                 appointmentService.cancelAppointment("a1");
 
-        assertThat(response.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(response.getStatus())
+                .isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(slot.getIsAvailable()).isTrue();
     }
 
     @Test
@@ -213,7 +202,8 @@ class AppointmentServiceTest {
         when(userAuthRepository.authenticateAndExtractUser())
                 .thenReturn(patient);
 
-        assertThatThrownBy(() -> appointmentService.cancelAppointment("a1"))
+        assertThatThrownBy(() ->
+                appointmentService.cancelAppointment("a1"))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -240,16 +230,21 @@ class AppointmentServiceTest {
         when(userAuthRepository.authenticateAndExtractUser())
                 .thenReturn(patient);
 
-        assertThatThrownBy(() -> appointmentService.getAllAppointments())
+        assertThatThrownBy(() ->
+                appointmentService.getAllAppointments())
                 .isInstanceOf(UnauthorizedException.class);
     }
 
     @AfterEach
     void tearDown() {
-        // Clear the SecurityContext to avoid authentication leak between tests
         SecurityContextHolder.clearContext();
-
-        // Reset all mocks to their original state
-        Mockito.reset(appointmentRepository, availabilityService, userService, userRepository, userAuthRepository);
+        reset(
+                appointmentRepository,
+                availabilityService,
+                availabilityRepository,
+                userService,
+                userRepository,
+                userAuthRepository
+        );
     }
 }

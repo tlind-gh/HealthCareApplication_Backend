@@ -34,7 +34,8 @@ public class AppointmentService {
             AvailabilityService availabilityService,
             UserService userService,
             UserRepository userRepository,
-            UserAuthRepository userAuthRepository) {
+            UserAuthRepository userAuthRepository,
+            AvailabilityRepository availabilityRepository) {
         this.appointmentRepository = appointmentRepository;
         this.availabilityService = availabilityService;
         this.userService = userService;
@@ -122,9 +123,16 @@ public class AppointmentService {
         if (appointment.getStatus().equals(AppointmentStatus.CANCELLED)) {
             throw new UnsupportedOperationException("Appointment has already been cancelled");
         }
-        //TODO: add check for last cancellation time (include in other issue).
+
+        Availability availability = availabilityService.getBookedSlot(
+                appointment.getProviderId(),
+                appointment.getDate(),
+                appointment.getStartTime(),
+                appointment.getEndTime()
+        );
         appointment.setStatus(AppointmentStatus.CANCELLED);
-        //TODO: set availability to isAvailable again!!!
+        availability.setIsAvailable(true);
+
         return mapToResponse(appointmentRepository.save(appointment));
     }
 

@@ -36,7 +36,7 @@ public class AppointmentController {
         return new ResponseEntity<>(appointmentService.getAppointmentById(id), HttpStatus.OK);
     }
 
-    @PatchMapping("/cancel/{id}/")
+    @PatchMapping("/cancel/{id}")
     public ResponseEntity<AppointmentResponse> cancelAppointment(@PathVariable String id) {
         return new ResponseEntity<>(appointmentService.cancelAppointment(id), HttpStatus.OK);
     }

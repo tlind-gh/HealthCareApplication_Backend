@@ -48,11 +48,12 @@ class AvailabilityControllerIntegrationTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        availabilityService = mock(AvailabilityService.class);
         availabilityController = new AvailabilityController(availabilityService);
 
         mockMvc = MockMvcBuilders.standaloneSetup(availabilityController)
-                .setControllerAdvice(new healthcareab.project.healthcare_booking_app.exceptions.GlobalExceptionHandler())
+                .setControllerAdvice(
+                        new healthcareab.project.healthcare_booking_app.exceptions.GlobalExceptionHandler()
+                )
                 .build();
 
         objectMapper = new ObjectMapper();
@@ -77,11 +78,17 @@ class AvailabilityControllerIntegrationTest {
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities(user.getRoles().stream().map(r -> "ROLE_" + r.name()).toArray(String[]::new))
+                .authorities(
+                        user.getRoles().stream()
+                                .map(r -> "ROLE_" + r.name())
+                                .toArray(String[]::new)
+                )
                 .build();
 
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                )
         );
     }
 
@@ -115,15 +122,18 @@ class AvailabilityControllerIntegrationTest {
         AvailabilityRequest request = validRequest();
         Availability availability = validAvailability();
 
-        when(availabilityService.createAvailability(request.getDate(), request.getStartTime(), request.getEndTime()))
-                .thenReturn(availability);
+        when(availabilityService.createAvailability(
+                request.getDate(),
+                request.getStartTime(),
+                request.getEndTime()
+        )).thenReturn(List.of(availability));
 
         mockMvc.perform(post("/availability/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("avail-1"))
-                .andExpect(jsonPath("$.providerId").value("provider-id"));
+                .andExpect(jsonPath("$[0].id").value("avail-1"))
+                .andExpect(jsonPath("$[0].providerId").value("provider-id"));
     }
 
     @Test
@@ -152,8 +162,9 @@ class AvailabilityControllerIntegrationTest {
 
         Availability availability = validAvailability();
 
-        when(availabilityService.getAvailabilitiesForCurrentProvider(availability.getDate(), availability.getDate()))
-                .thenReturn(List.of(availability));
+        when(availabilityService.getAvailabilitiesForCurrentProvider(
+                availability.getDate(), availability.getDate()
+        )).thenReturn(List.of(availability));
 
         mockMvc.perform(get("/availability/all")
                         .param("from", "2026-01-15")
@@ -173,8 +184,12 @@ class AvailabilityControllerIntegrationTest {
         AvailabilityRequest request = validRequest();
         Availability availability = validAvailability();
 
-        when(availabilityService.updateAvailability("avail-1", request.getDate(), request.getStartTime(), request.getEndTime()))
-                .thenReturn(availability);
+        when(availabilityService.updateAvailability(
+                "avail-1",
+                request.getDate(),
+                request.getStartTime(),
+                request.getEndTime()
+        )).thenReturn(availability);
 
         mockMvc.perform(put("/availability/{id}", "avail-1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -210,7 +225,8 @@ class AvailabilityControllerIntegrationTest {
         doNothing().when(availabilityService).deleteAvailability("avail-1");
 
         mockMvc.perform(delete("/availability/{id}", "avail-1"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent())
+                .andExpect(content().string("Availability deleted successfully"));
     }
 
     @Test

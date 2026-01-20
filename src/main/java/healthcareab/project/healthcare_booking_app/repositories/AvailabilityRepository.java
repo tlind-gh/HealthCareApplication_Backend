@@ -46,4 +46,15 @@ public interface AvailabilityRepository extends MongoRepository<Availability, St
 }
 """)
     Optional<Availability> findAvailableSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime);
+
+    @Query("""
+{
+  'providerId': ?0,
+  'date': ?1,
+  'startTime': { $lte: ?2 },
+  'endTime': { $gte: ?3 },
+  'isAvailable': false
+}
+""")
+    Optional<Availability> findBookedSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime);
 }

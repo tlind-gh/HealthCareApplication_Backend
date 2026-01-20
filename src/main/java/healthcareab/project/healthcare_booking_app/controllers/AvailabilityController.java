@@ -27,16 +27,18 @@ public class AvailabilityController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('PROVIDER','ADMIN')")
-    public ResponseEntity<AvailabilityResponse> createAvailability(
+    public ResponseEntity<List<AvailabilityResponse>> createAvailability(
             @Valid @RequestBody AvailabilityRequest request) {
 
-        Availability availability = availabilityService.createAvailability(
+        List<Availability> availabilities = availabilityService.createAvailability(
                 request.getDate(),
                 request.getStartTime(),
                 request.getEndTime()
         );
 
-        AvailabilityResponse response = AvailabilityResponse.fromEntity(availability);
+        List<AvailabilityResponse> response = availabilities.stream()
+                .map(AvailabilityResponse::fromEntity)
+                .toList();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
