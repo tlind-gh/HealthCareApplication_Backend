@@ -124,4 +124,18 @@ public class AvailabilityService {
         User currentUser = userService.getCurrentUser();
         return getAvailabilitiesForProvider(currentUser.getId(), from, to);
     }
+    
+    public boolean isTimeAvailable(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return availabilityRepository.isTimeAvailable(
+                providerId,
+                date,
+                startTime,
+                endTime
+        );
+    }
+    
+    public Availability getAvailableSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return availabilityRepository.findAvailableSlot(providerId, date, startTime, endTime)
+                .orElseThrow(() -> new NotFoundException("Availability not found"));
+    }
 }
