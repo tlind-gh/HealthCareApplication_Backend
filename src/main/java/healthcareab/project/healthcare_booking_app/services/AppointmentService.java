@@ -5,10 +5,12 @@ import healthcareab.project.healthcare_booking_app.dto.AppointmentResponse;
 import healthcareab.project.healthcare_booking_app.exceptions.IllegalArgumentException;
 import healthcareab.project.healthcare_booking_app.exceptions.UnauthorizedException;
 import healthcareab.project.healthcare_booking_app.models.Appointment;
+import healthcareab.project.healthcare_booking_app.models.Availability;
 import healthcareab.project.healthcare_booking_app.models.User;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.AppointmentStatus;
 import healthcareab.project.healthcare_booking_app.models.supportClasses.Role;
 import healthcareab.project.healthcare_booking_app.repositories.AppointmentRepository;
+import healthcareab.project.healthcare_booking_app.repositories.AvailabilityRepository;
 import healthcareab.project.healthcare_booking_app.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,17 +23,20 @@ public class AppointmentService {
     private final AvailabilityService availabilityService;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final AvailabilityRepository availabilityRepository;
+    
     
     public AppointmentService(
             AppointmentRepository appointmentRepository,
             AvailabilityService availabilityService,
             UserService userService,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository,
+            AvailabilityRepository availabilityRepository) {
         this.appointmentRepository = appointmentRepository;
         this.availabilityService = availabilityService;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.availabilityRepository = availabilityRepository;
     }
     
     public AppointmentResponse createAppointment(AppointmentRequest request) {
@@ -65,6 +70,17 @@ public class AppointmentService {
         if (!available) {
             throw new IllegalArgumentException("Selected time is not available");
         }
+   
+        // get availability slot and make as booked
+        Availability availability = availabilityService.getAvailableSlot(
+                request.getProviderId(),
+                request.getDate(),
+                request.getStartTime(),
+                request.getEndTime()
+        );
+        
+        availability.setIsAvailable(false);
+        availabilityRepository.save(availability);
         
         Appointment appointment = new Appointment();
         appointment.setPatientId(patient.getId());
@@ -73,6 +89,7 @@ public class AppointmentService {
         appointment.setStartTime(request.getStartTime());
         appointment.setEndTime(request.getEndTime());
         appointment.setStatus(AppointmentStatus.BOOKED);
+        
         
         Appointment savedAppointment = appointmentRepository.save(appointment);
         

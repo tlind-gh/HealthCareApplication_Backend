@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AvailabilityRepository extends MongoRepository<Availability, String> {
@@ -33,10 +34,16 @@ public interface AvailabilityRepository extends MongoRepository<Availability, St
       """,
             exists = true
     )
-    boolean isTimeAvailable(
-            String providerId,
-            LocalDate date,
-            LocalTime startTime,
-            LocalTime endTime
-    );
+    boolean isTimeAvailable(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime);
+    
+    @Query("""
+{
+  'providerId': ?0,
+  'date': ?1,
+  'startTime': { $lte: ?2 },
+  'endTime': { $gte: ?3 },
+  'isAvailable': true
+}
+""")
+    Optional<Availability> findAvailableSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime);
 }
