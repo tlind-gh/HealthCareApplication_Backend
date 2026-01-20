@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // define URL based rules
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/availability/**").hasAnyRole("ADMIN","PROVIDER","PATIENT")
+                        .requestMatchers("/availability/**", "/appointment/**").hasAnyRole("ADMIN","PROVIDER","PATIENT")
                         .requestMatchers("/auth/**").permitAll()
                         // any other requests the user need to be logged
                         .anyRequest().authenticated()

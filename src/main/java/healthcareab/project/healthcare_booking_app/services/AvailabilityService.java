@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +26,7 @@ public class AvailabilityService {
         this.userService = userService;
     }
     
-    public Availability createAvailability(LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public List<Availability> createAvailability(LocalDate date, LocalTime startTime, LocalTime endTime) {
         userService.assertCurrentUserAuthenticated();
         User user = userService.getCurrentUser();
         
@@ -43,15 +44,31 @@ public class AvailabilityService {
         if(endTime.isAfter(maxTime)) {
             throw new IllegalArgumentException("End time must be at or before 17:00");
         }
-        
-        Availability availability = new Availability();
-        availability.setProviderId(user.getId());
-        availability.setDate(date);
-        availability.setStartTime(startTime);
-        availability.setEndTime(endTime);
-        availability.setIsAvailable(true);
-        
-        return availabilityRepository.save(availability);
+
+        // Ensure full 1-hour slots
+        if (startTime.getMinute() != 0 || endTime.getMinute() != 0) {
+            throw new IllegalArgumentException("Availability must be in full 1-hour blocks");
+        }
+
+        List<Availability> timeSlots = new ArrayList<>();
+
+        LocalTime timeSlotStart = startTime;
+        while (timeSlotStart.isBefore(endTime)) {
+            LocalTime timeSlotEnd = timeSlotStart.plusHours(1);
+
+            Availability availability = new Availability();
+            availability.setProviderId(user.getId());
+            availability.setDate(date);
+            availability.setStartTime(timeSlotStart);
+            availability.setEndTime(timeSlotEnd);
+            availability.setIsAvailable(true);
+
+            timeSlots.add(availability);
+
+            timeSlotStart = timeSlotEnd;
+        }
+
+        return availabilityRepository.saveAll(timeSlots);
     }
     
     public List<Availability> getAvailabilitiesForProvider(String providerId, LocalDate from, LocalDate to) {
@@ -136,6 +153,11 @@ public class AvailabilityService {
     
     public Availability getAvailableSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
         return availabilityRepository.findAvailableSlot(providerId, date, startTime, endTime)
+                .orElseThrow(() -> new NotFoundException("Availability not found"));
+    }
+
+    public Availability getBookedSlot(String providerId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return availabilityRepository.findBookedSlot(providerId, date, startTime, endTime)
                 .orElseThrow(() -> new NotFoundException("Availability not found"));
     }
 }

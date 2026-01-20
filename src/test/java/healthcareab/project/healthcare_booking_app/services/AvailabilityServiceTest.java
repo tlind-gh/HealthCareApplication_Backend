@@ -53,55 +53,60 @@ class AvailabilityServiceTest {
     }
 
     // ------------------------------------------------------------------
-    // CREATE AVAILABILITY
+    // CREATE AVAILABILITY (SLOT-BASED)
     // ------------------------------------------------------------------
 
     @Test
-    void createAvailability_shouldSaveAvailability_whenValidInput() {
+    void createAvailability_shouldCreateHourlySlots_whenValidInput() {
         when(userService.getCurrentUser()).thenReturn(providerUser);
 
         LocalDate date = LocalDate.of(2026, 2, 1);
         LocalTime start = LocalTime.of(9, 0);
-        LocalTime end = LocalTime.of(11, 0);
+        LocalTime end = LocalTime.of(11, 0); // 2 slots
 
-        ArgumentCaptor<Availability> captor = ArgumentCaptor.forClass(Availability.class);
+        ArgumentCaptor<List<Availability>> captor =
+                ArgumentCaptor.forClass(List.class);
 
-        when(availabilityRepository.save(captor.capture()))
-                .thenAnswer(i -> {
-                    Availability a = i.getArgument(0);
-                    a.setId("availability-id");
-                    return a;
-                });
+        when(availabilityRepository.saveAll(captor.capture()))
+                .thenAnswer(i -> i.getArgument(0));
 
-        Availability result = availabilityService.createAvailability(date, start, end);
+        List<Availability> result =
+                availabilityService.createAvailability(date, start, end);
 
-        assertThat(result.getId()).isEqualTo("availability-id");
-        assertThat(result.getProviderId()).isEqualTo("provider-id");
-        assertThat(result.getDate()).isEqualTo(date);
-        assertThat(result.getStartTime()).isEqualTo(start);
-        assertThat(result.getEndTime()).isEqualTo(end);
-        assertThat(result.getIsAvailable()).isTrue();
+        assertThat(result).hasSize(2);
 
-        Availability saved = captor.getValue();
-        assertThat(saved.getProviderId()).isEqualTo("provider-id");
+        Availability first = result.get(0);
+        Availability second = result.get(1);
+
+        assertThat(first.getStartTime()).isEqualTo(LocalTime.of(9, 0));
+        assertThat(first.getEndTime()).isEqualTo(LocalTime.of(10, 0));
+
+        assertThat(second.getStartTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(second.getEndTime()).isEqualTo(LocalTime.of(11, 0));
+
+        assertThat(first.getProviderId()).isEqualTo("provider-id");
+        assertThat(first.getIsAvailable()).isTrue();
 
         verify(userService).assertCurrentUserAuthenticated();
-        verify(availabilityRepository).save(any());
+        verify(availabilityRepository).saveAll(any());
     }
 
     @Test
-    void createAvailability_shouldAcceptBoundaryTimes() {
+    void createAvailability_shouldAcceptBoundaryTimes_andCreateNineSlots() {
         when(userService.getCurrentUser()).thenReturn(providerUser);
-        when(availabilityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Availability result = availabilityService.createAvailability(
+        when(availabilityRepository.saveAll(any()))
+                .thenAnswer(i -> i.getArgument(0));
+
+        List<Availability> result = availabilityService.createAvailability(
                 LocalDate.now(),
                 LocalTime.of(8, 0),
                 LocalTime.of(17, 0)
         );
 
-        assertThat(result.getStartTime()).isEqualTo(LocalTime.of(8, 0));
-        assertThat(result.getEndTime()).isEqualTo(LocalTime.of(17, 0));
+        assertThat(result).hasSize(9);
+        assertThat(result.get(0).getStartTime()).isEqualTo(LocalTime.of(8, 0));
+        assertThat(result.get(8).getEndTime()).isEqualTo(LocalTime.of(17, 0));
     }
 
     @Test
@@ -118,7 +123,24 @@ class AvailabilityServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Start time must be before end time");
 
-        verify(availabilityRepository, never()).save(any());
+        verify(availabilityRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void createAvailability_shouldThrow_whenNotFullHour() {
+        when(userService.getCurrentUser()).thenReturn(providerUser);
+
+        assertThatThrownBy(() ->
+                availabilityService.createAvailability(
+                        LocalDate.now(),
+                        LocalTime.of(9, 30),
+                        LocalTime.of(10, 0)
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("1-hour blocks");
+
+        verify(availabilityRepository, never()).saveAll(any());
     }
 
     @Test
@@ -136,7 +158,7 @@ class AvailabilityServiceTest {
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessageContaining("not authenticated");
 
-        verify(availabilityRepository, never()).save(any());
+        verify(availabilityRepository, never()).saveAll(any());
     }
 
     // ------------------------------------------------------------------
@@ -179,7 +201,7 @@ class AvailabilityServiceTest {
                 "av-1",
                 LocalDate.of(2026, 2, 10),
                 LocalTime.of(10, 0),
-                LocalTime.of(12, 0)
+                LocalTime.of(11, 0)
         );
 
         assertThat(result.getStartTime()).isEqualTo(LocalTime.of(10, 0));

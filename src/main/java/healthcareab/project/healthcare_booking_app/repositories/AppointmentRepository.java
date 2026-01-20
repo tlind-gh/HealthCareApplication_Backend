@@ -7,9 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Repository
 public interface AppointmentRepository extends MongoRepository<Appointment, String> {
+
+    List<Appointment> findByProviderId(String userId);
+    List<Appointment> findByPatientId(String userId);
     /**
      * Checks whether a provider has availability that fully covers
      * the requested appointment time on the given date.
